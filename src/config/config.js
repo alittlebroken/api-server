@@ -6,6 +6,7 @@ import 'dotenv/config';
  */
 const config = {
     application: {
+        host: process.env.APP_HOST || 'http://localhost',
         port: process.env.APP_PORT || 3000,
         mode: process.env.APP_MODE || 'development',
         name: process.env.APP_NAME || 'Template API Server'
@@ -24,6 +25,16 @@ const config = {
         rotation: process.env.LOG_ROTATION || '1d',
         maxSize: process.env.LOG_SIZE || '20m',
         keepForDays: process.env.LOG_KEEP_FOR_DAYS || '14d'
+    },
+    swagger: {
+        title: process.env.SWAGGER_TITLE || 'Template API Server',
+        version: process.env.SWAGGER_VERSION || '0.0.1',
+        description: process.env.SWAGGER_DESCRIPTION || 'Template API server in Node.JS/Express',
+        contact: {
+            name: process.env.SWAGGER_CONTACT_NAME || 'Administrator',
+            url: process.env.SWAGGER_CONTACT_URL || 'http://localhost:3000',
+            email: process.env.SWAGGER_CONTACT_EMAIL || 'admin@localhost'
+        }
     }
 };
 

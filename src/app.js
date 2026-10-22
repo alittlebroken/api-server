@@ -3,10 +3,12 @@ import cors from 'cors';
 import helmet from 'helmet';
 import { rateLimit } from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
+import swaggerUi from 'swagger-ui-express'
 
 import config from './config/config.js';
 import logger from './config/winston.js';
 import logging from './middlewares/logging.middleware.js';
+import swaggerConfig from './config/swagger.js';
 
 /**
  *  ==== SETUP & Configuration ====
@@ -46,6 +48,9 @@ if(config.application.mode === 'production'){
 
 /** Apply logging to routes */
 app.use(logging);
+
+/** apply SWAGGER API docs */
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerConfig));
 
 /**
  * ==== ROUTING ====
