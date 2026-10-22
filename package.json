@@ -5,8 +5,8 @@
   "main": "server.js",
   "scripts": {
     "test": "vitest",
-    "lint": "eslint src/",
-    "dev": "nodemon"
+    "dev": "nodemon",
+    "dbSetup": "node ./src/db/setup.js"
   },
   "keywords": [],
   "author": "",

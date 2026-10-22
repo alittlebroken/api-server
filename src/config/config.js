@@ -35,6 +35,15 @@ const config = {
             url: process.env.SWAGGER_CONTACT_URL || 'http://localhost:3000',
             email: process.env.SWAGGER_CONTACT_EMAIL || 'admin@localhost'
         }
+    },
+    database: {
+        host: process.env.DB_HOST || 'localhost',
+        name: process.env.DB_NAME || 'apiserver',
+        user: process.env.DB_USER || 'dbadmin',
+        pass: process.env.DB_PASS || 'changeme',
+        port: process.env.DB_PORT || 1234,
+        dialect: process.env.DB_DIALECT || 'postgres',
+        timezone: process.env.DB_TZ || '+00:00'
     }
 };
 
