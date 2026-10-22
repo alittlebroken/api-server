@@ -57,3 +57,15 @@ Here is a list of the environmental files that are needed for the API server to 
 | SWAGGER_CONTACT_NAME | Who is responsible for the docs | Admin |
 | SWAGGER_CONTACT_URL | What is the url for the contacts website | http://localhost:3000 |
 | SWAGGER_CONTACT_EMAIL | Email address for the swagger administrator | admin@localhost |
+
+## Commands
+
+- To run the dev server 
+```bash
+npm run dev
+```
+
+- To run tests
+```bash
+npm run test
+```
