@@ -32,13 +32,17 @@ app.use(cors({
 /** Apply default helmet config */
 app.use(helmet());
 
-/** Apply rate limits */
-app.use(rateLimit({
-    windowMs: parseInt(config.ratelimit.window),
-    limit: parseInt(config.ratelimit.requests),
-    standardHeaders: 'draft-8',
-    legacyHeaders: false
-}));
+/** Apply rate limits - only in production */
+if(config.application.mode === 'production'){
+
+    app.use(rateLimit({
+        windowMs: parseInt(config.ratelimit.window),
+        limit: parseInt(config.ratelimit.requests),
+        standardHeaders: 'draft-8',
+        legacyHeaders: false
+    }));
+
+};
 
 /** Apply logging to routes */
 app.use(logging);
