@@ -4,6 +4,8 @@ import helmet from 'helmet';
 import { rateLimit } from 'express-rate-limit';
 
 import config from './config/config.js';
+import logger from './config/winston.js';
+import logging from './middlewares/logging.middleware.js';
 
 /**
  *  ==== SETUP & Configuration ====
@@ -34,9 +36,18 @@ app.use(rateLimit({
     legacyHeaders: false
 }));
 
+/** Apply logging to routes */
+app.use(logging);
+
 /**
  * ==== ROUTING ====
  */
+
+/** Create a catch all error route. This must appear after all other routes */
+app.use((err, req, res, next) => {
+  logger.error(`${err.stack}`);
+  res.status(500).send('There was an internal problem with the server.');
+});
 
 /**
  * Export out the app so that other modules/scripts can use it like testing
