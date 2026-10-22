@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import { rateLimit } from 'express-rate-limit';
 
 import config from './config/config.js';
 
@@ -24,6 +25,14 @@ app.use(cors({
 
 /** Apply default helmet config */
 app.use(helmet());
+
+/** Apply rate limits */
+app.use(rateLimit({
+    windowMs: parseInt(config.ratelimit.window),
+    limit: parseInt(config.ratelimit.requests),
+    standardHeaders: 'draft-8',
+    legacyHeaders: false
+}));
 
 /**
  * ==== ROUTING ====
