@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { rateLimit } from 'express-rate-limit';
+import cookieParser from 'cookie-parser';
 
 import config from './config/config.js';
 import logger from './config/winston.js';
@@ -18,6 +19,9 @@ import logging from './middlewares/logging.middleware.js';
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+/** Apply cookie settings */
+app.use(cookieParser());
 
 /** Setup cors */
 app.use(cors({
