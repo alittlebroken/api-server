@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 
 import config from './config/config.js';
 
@@ -20,6 +21,9 @@ app.use(cors({
     origin: config.cors.allowed_hosts.split(","),
     credentials: config.cors.credentials,
 }))
+
+/** Apply default helmet config */
+app.use(helmet());
 
 /**
  * ==== ROUTING ====
