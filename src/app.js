@@ -56,6 +56,13 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerConfig));
  * ==== ROUTING ====
  */
 
+/** Test routes. 
+ * 
+ *  Remove when in production or no loger needed
+ */
+import testRoutes from './routes/api/v1/test.routes.js';
+app.use('/api/v1/tests', testRoutes);
+
 /** Create a catch all error route. This must appear after all other routes */
 app.use((err, req, res, next) => {
   logger.error(`${err.stack}`);
