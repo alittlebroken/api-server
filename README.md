@@ -79,6 +79,10 @@ Here is a list of the environmental files that are needed for the API server to 
 | DB_PORT | The port the database listens on | 3304 |
 | DB_DIALECT | The type of database being used | postgres |
 | DB_TZ | The timezone to use for timestamps | +00:00 |
+| AUTH_JWT_SECRET | The secret used to help encrypt the token | |
+| AUTH_JWT_EXPIRES | How long till the token expires, set to a short time | 15 * 60 * 1000 |
+| AUTH_REFRESH_SECRET | The secret used to help encrypt the refresh token | |
+| AUTH_REFRESH_EXPIRES | How long till the refresh token expires | 15 * 24 * 60 * 60 * 1000 |
 
 ## Commands
 

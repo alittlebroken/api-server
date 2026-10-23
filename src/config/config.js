@@ -44,6 +44,16 @@ const config = {
         port: process.env.DB_PORT || 1234,
         dialect: process.env.DB_DIALECT || 'postgres',
         timezone: process.env.DB_TZ || '+00:00'
+    },
+    auth: {
+        jwt: {
+            secret: process.env.AUTH_JWT_SECRET,
+            expires: process.env.AUTH_JWT_EXPIRES || 15 * 60 * 1000
+        },
+        refresh: {
+            secret: process.env.AUTH_REFRESH_SECRET,
+            expires: process.env.AUTH_REFRESH_EXPIRES || 15 * 24 * 60 * 60 * 1000
+        }
     }
 };
 
