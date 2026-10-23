@@ -7,6 +7,8 @@ It contains all the satndard packages and config I use across all projects.
 
 I can then just add any extra packages and config based on the needs of the project at the time.
 
+When cloning this repo, it is best to remove the test routes, controllers, services, miodels and tests (if any) to give you a clean slate to work with
+
 ## Packages
 
 | Name | Development Only |
