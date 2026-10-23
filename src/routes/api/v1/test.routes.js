@@ -93,7 +93,7 @@ route.get('/:id', (req, res, next) => {
 
     if(id < 0) id = 0;
 
-    res.status(200).json({ data: testData[id] });
+    res.status(200).json({ data: [testData[id]] });
 
 });
 
