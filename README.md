@@ -7,7 +7,20 @@ It contains all the satndard packages and config I use across all projects.
 
 I can then just add any extra packages and config based on the needs of the project at the time.
 
-When cloning this repo, it is best to remove the test routes, controllers, services, miodels and tests (if any) to give you a clean slate to work with
+When cloning this repo, it is best to remove the test routes, controllers, services, models and tests (if any) to give you a clean slate to work with
+
+## Deployment
+
+- Once you have created a repository from the template and clone it locally do the following
+```bash
+npm i
+```
+
+- Generate a .env file with all the environment files listed below set with the appropriate values
+- Test the server works with the following command
+```bash
+npm run test
+```
 
 ## Packages
 
