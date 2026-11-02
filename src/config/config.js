@@ -46,6 +46,7 @@ const config = {
         timezone: process.env.DB_TZ || '+00:00'
     },
     auth: {
+        secret: process.env.AUTH_SECRET,
         jwt: {
             secret: process.env.AUTH_JWT_SECRET,
             expires: process.env.AUTH_JWT_EXPIRES || "15m"
