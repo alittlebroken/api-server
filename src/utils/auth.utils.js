@@ -10,7 +10,7 @@ import logger from '../config/winston';
  * @param {string} salt - The salt to use to help encrypt the token
  * @returns {string} The encoded payload as a json web token
  */
-export const encodeToken = (payload, salt, expires, type="access") => {
+export const encodeToken = async (payload, salt, expires, type="access") => {
 
     /** validate the passed in arguments */
     if(!payload || payload === undefined || payload === null || Object.keys(payload).length <=0 ) return { token: undefined, error: "Token validation failure. Payload must be set." };
@@ -31,3 +31,31 @@ export const encodeToken = (payload, salt, expires, type="access") => {
     }
 
 };
+
+/**
+ * Verifies the passed in token
+ * 
+ * @param {string} token - The token you wish to be verified
+ * @param {string} salt - The salt used to sign the token
+ * @returns {object} The verified and decoded token
+ */
+export const verifyToken = async (token, salt) => {
+
+    /** Perform some verification on the passed in arguments */
+    if(!token || token === undefined || token === null || typeof token != "string" ) return { token: undefined, error: "Token expected." };
+    if(!salt || token === undefined || token === null || typeof salt != "string") return { token: undefined, error: "Token salt must be set." };
+
+    try {
+
+        const verifiedToken = await jwt.verify(token, salt);
+
+        return { token: verifiedToken, error: undefined };
+
+    } catch (err) {
+
+        logger.log("error", err.message);
+        return { token: undefined, error: err.message };
+
+    }
+
+}

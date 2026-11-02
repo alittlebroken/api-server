@@ -3,7 +3,7 @@ import { vi, describe, it, expect, beforeEach, afterEach, assert } from "vitest"
 import jwt from 'jsonwebtoken';
 
 import config from '../config/config.js';
-import { encodeToken } from "../utils/auth.utils.js";
+import { encodeToken, verifyToken } from "../utils/auth.utils.js";
 
 /** Create some valid and invalid tokens */
 let validToken = null;
@@ -116,5 +116,140 @@ describe('AUTH Utils', () => {
 
     });
 
+    describe('verifyToken', () => {
+
+        it('should verify the token and return the decoded payload', async () => {
+
+            /** Set the salt to be used for verification */
+            const salt = "saltySecret";
+
+            /** Set the token to be decrypted */
+            const accessToken = validToken;
+            
+            /** Verify the token */
+            const { token: verifiedToken, error: verifiedError } = await verifyToken(accessToken, salt);
+
+            /** Check that the returned values are as we expected */
+            expect(verifiedToken).toBeDefined();
+            expect(verifiedError).not.toBeDefined();
+
+            expect(verifiedToken).toHaveProperty('id');
+            expect(verifiedToken.id).toBeTypeOf('number');
+            expect(verifiedToken.id).toEqual(1);
+
+            expect(verifiedToken).toHaveProperty('username');
+            expect(verifiedToken.username).toBeTypeOf('string');
+            expect(verifiedToken.username).toEqual("testUser1");
+
+            expect(verifiedToken).toHaveProperty('roles');
+            expect(verifiedToken.roles).toBeInstanceOf(Array);
+            expect(verifiedToken.roles).toHaveLength(1);
+            expect(verifiedToken.roles).toEqual(["user"]);
+
+        });
+
+        it('should return an error if the token is null', async () => {
+
+            /** Set the salt to be used for verification */
+            const salt = "saltySecret";
+
+            /** Set the token to be decrypted */
+            const accessToken = undefined;
+
+            /** Verify the token */
+            const { token: verifiedToken, error: verifiedError } = await verifyToken(accessToken, salt);
+
+            /** Check that the returned values are as we expected */
+            expect(verifiedToken).not.toBeDefined();
+            expect(verifiedError).toBeDefined();
+
+            expect(verifiedError).toBeTypeOf("string");
+            expect(verifiedError).toEqual("Token expected.");
+
+
+        });
+
+        it('should return an error if the tokens salt is not set', async () => {
+
+            /** Set the salt to be used for verification */
+            const salt = undefined;
+
+            /** Set the token to be decrypted */
+            const accessToken = validToken;
+
+            /** Verify the token */
+            const { token: verifiedToken, error: verifiedError } = await verifyToken(accessToken, salt);
+
+            /** Check that the returned values are as we expected */
+            expect(verifiedToken).not.toBeDefined();
+            expect(verifiedError).toBeDefined();
+
+            expect(verifiedError).toBeTypeOf("string");
+            expect(verifiedError).toEqual("Token salt must be set.");
+
+        });
+
+        it('should return an error if the token has expired', async () => {
+
+            /** Set the salt to be used for verification */
+            const salt = "saltySecret";
+
+            /** Set the token to be decrypted */
+            const accessToken = invalidToken;
+
+            /** Verify the token */
+            const { token: verifiedToken, error: verifiedError } = await verifyToken(accessToken, salt);
+
+            /** Check that the returned values are as we expected */
+            expect(verifiedToken).not.toBeDefined();
+            expect(verifiedError).toBeDefined();
+
+            expect(verifiedError).toBeTypeOf("string");
+            expect(verifiedError).toEqual("jwt expired");
+
+
+        });
+
+        it('should return an error if the token is malformed', async () => {
+
+            /** Set the salt to be used for verification */
+            const salt = "saltySecret";
+
+            /** Set the token to be decrypted */
+            const accessToken = "Bearer " + invalidToken;
+
+            /** Verify the token */
+            const { token: verifiedToken, error: verifiedError } = await verifyToken(accessToken, salt);
+
+            /** Check that the returned values are as we expected */
+            expect(verifiedToken).not.toBeDefined();
+            expect(verifiedError).toBeDefined();
+
+            expect(verifiedError).toBeTypeOf("string");
+            expect(verifiedError).toEqual("invalid token");
+
+        });
+
+        it('should return an error if the signature is invalid', async () => {
+
+            /** Set the salt to be used for verification */
+            const salt = "saltySecretTwelve";
+
+            /** Set the token to be decrypted */
+            const accessToken = invalidToken;
+
+            /** Verify the token */
+            const { token: verifiedToken, error: verifiedError } = await verifyToken(accessToken, salt);
+
+            /** Check that the returned values are as we expected */
+            expect(verifiedToken).not.toBeDefined();
+            expect(verifiedError).toBeDefined();
+
+            expect(verifiedError).toBeTypeOf("string");
+            expect(verifiedError).toEqual("invalid signature");
+
+        });
+
+    })
 
 });
