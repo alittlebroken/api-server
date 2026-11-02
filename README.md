@@ -27,6 +27,7 @@ npm run test
 | Name | Development Only |
 | ---- | ---------------- |
 | express | |
+| argon2 | |
 | express-rate-limit | |
 | cors | |
 | cookie-parser | |
@@ -46,6 +47,7 @@ npm run test
 | supertest | Yes |
 | vitest | Yes |
 | dotenv | Yes |
+| sequelize-mock | Yes |
 
 ## Environment files
 
