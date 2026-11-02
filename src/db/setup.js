@@ -5,11 +5,12 @@ import db from './database.js';
  * 
  * For each model you wish to setup within the database, include them here
  */
+import User from '../models/auth/User.model.js';
 
 /**
  * Relationships
  * 
- * Set the realtions between the models like one-to-one or one-to-many
+ * Set the relations between the models like one-to-one or one-to-many
  */
 
 /** Sync the models with the database, creating the tables and relationships */
