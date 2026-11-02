@@ -52,10 +52,35 @@ export const verifyToken = async (token, salt) => {
         return { token: verifiedToken, error: undefined };
 
     } catch (err) {
-
         logger.log("error", err.message);
         return { token: undefined, error: err.message };
-
     }
 
-}
+};
+
+/**
+ * Refreshes a users access token
+ * 
+ * @param {string} refreshToken - The users refresh token that a new access token is built from
+ * @returns {object} A new access token or an error if something went wrong 
+ */
+export const refreshAccessToken = async (refreshToken) => {
+
+    /** Validate and verify the passed in refresh token */
+    if(!refreshToken || refreshToken === undefined || refreshToken === null || typeof refreshToken != 'string') return { token: undefined, error: "You must pass in a valid refresh token" };
+
+    let { token: decodedRefreshToken, error: err } = await verifyToken(refreshToken, config.auth.refresh.secret);
+    if(err){
+        return { token: undefined, error: err }
+    };
+
+    /** generate a new access token for the user */
+    const payload = { id: decodedRefreshToken.id, username: decodedRefreshToken.username, roles: decodedRefreshToken.roles };
+    let { token, error } = await encodeToken(payload, config.auth.jwt.secret, config.auth.jwt.expires);
+    if(error){
+        return { token, error }
+    }
+
+    return { token, error: undefined };
+
+};

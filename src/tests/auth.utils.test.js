@@ -3,7 +3,7 @@ import { vi, describe, it, expect, beforeEach, afterEach, assert } from "vitest"
 import jwt from 'jsonwebtoken';
 
 import config from '../config/config.js';
-import { encodeToken, verifyToken } from "../utils/auth.utils.js";
+import { encodeToken, verifyToken, refreshAccessToken } from "../utils/auth.utils.js";
 
 /** Create some valid and invalid tokens */
 let validToken = null;
@@ -16,6 +16,7 @@ describe('AUTH Utils', () => {
 
     /** Create new tokens before test */
     beforeEach(async () => {
+
         validToken = jwt.sign({ id: 1, username: "testUser1", roles: ["user"] }, "saltySecret", { expiresIn: config.auth.jwt.expires});
         validRefresh = jwt.sign({ id: 1, username: "testUser1", roles: ["user"] }, "saltyRefreshSecret", { expiresIn: config.auth.refresh.expires});
 
@@ -25,6 +26,7 @@ describe('AUTH Utils', () => {
 
     /** Reset the tokens after each test */
     afterEach(() => {
+
         validToken = null;
         invalidToken = null;
 
@@ -251,5 +253,109 @@ describe('AUTH Utils', () => {
         });
 
     })
+
+    describe('refreshAccessToken', () => {
+
+        it('should return a new access token', async () => {
+
+            config.auth.refresh.secret = 'saltyRefreshSecret';
+            config.auth.jwt.secret = 'saltySecret';
+
+            /** generate the payload we wish to recreate a new token for */
+            const payload = { id: 1, username: "testUser1", roles: ["user"] };
+            
+            /** Salt set for refreshing a token */
+            const salt = "saltySecret";
+
+            /** Set the expiry time of the token */
+            const expires = "15m";
+
+            /** generate a valid token that we expect to see the refresh token give us */
+            const { token: expectedToken, error } = await encodeToken(payload, salt, expires);
+
+            /** generate a new access token */
+            const { token: refreshedToken, error: refreshedError } = await refreshAccessToken(validRefresh);
+
+            /** Check the function ran as expected */
+            expect(refreshedToken).toBeDefined();
+            expect(refreshedError).not.toBeDefined();
+
+            expect(refreshedToken).toBeTypeOf('string');
+            expect(refreshedToken).toEqual(expectedToken);
+
+        });
+
+        it('should return an error if the refresh token is null', async () => {
+
+            config.auth.refresh.secret = 'saltyRefreshSecret';
+
+            /** generate a new access token */
+            const { token: refreshedToken, error: refreshedError } = await refreshAccessToken(undefined);
+
+            /** Check the function ran as expected */
+            expect(refreshedToken).not.toBeDefined();
+            expect(refreshedError).toBeDefined();
+
+            expect(refreshedError).toBeTypeOf('string');
+            expect(refreshedError).toEqual("You must pass in a valid refresh token");
+
+        });
+
+        it('should return an error if the refresh token has expired', async () => {
+
+            config.auth.refresh.secret = 'saltyRefreshSecret';
+
+            /** Generate a new expired refresh token */
+            const {token: refreshToken, error: refreshError} = await encodeToken({ id: 1, username: "testUser1", roles: ["user"] }, "saltyRefreshSecret", "-7d");
+
+            /** generate a new access token */
+            const { token: refreshedToken, error: refreshedError } = await refreshAccessToken(refreshToken);
+
+            /** Check the function ran as expected */
+            expect(refreshedToken).not.toBeDefined();
+            expect(refreshedError).toBeDefined();
+
+            expect(refreshedError).toBeTypeOf('string');
+            expect(refreshedError).toEqual("jwt expired");
+
+        });
+
+        it('should return an error if the refresh token is malformed', async () => {
+
+            /** Generate a new expired refresh token */
+            const {token: refreshToken, error: refreshError} = await encodeToken({ id: 1, username: "testUser1", roles: ["user"] }, "saltyRefreshSecret", "7d");
+
+            /** generate a new access token */
+            const { token: refreshedToken, error: refreshedError } = await refreshAccessToken("Bearer " + refreshToken);
+
+            /** Check the function ran as expected */
+            expect(refreshedToken).not.toBeDefined();
+            expect(refreshedError).toBeDefined();
+
+            expect(refreshedError).toBeTypeOf('string');
+            expect(refreshedError).toEqual("invalid token");
+
+        });
+
+        it('should return an error if the refresh tokens signature does not match', async () => {
+
+            config.auth.refresh.secret = "saltyRefreshSecret";
+
+            /** Generate a new expired refresh token */
+            const {token: refreshToken, error: refreshError} = await encodeToken({ id: 1, username: "testUser1", roles: ["user"] }, "saltyRefrshSecret", "7d");
+
+            /** generate a new access token */
+            const { token: refreshedToken, error: refreshedError } = await refreshAccessToken(refreshToken);
+
+            /** Check the function ran as expected */
+            expect(refreshedToken).not.toBeDefined();
+            expect(refreshedError).toBeDefined();
+
+            expect(refreshedError).toBeTypeOf('string');
+            expect(refreshedError).toEqual("invalid signature");
+
+        });
+
+    });
 
 });
