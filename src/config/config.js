@@ -48,11 +48,11 @@ const config = {
     auth: {
         jwt: {
             secret: process.env.AUTH_JWT_SECRET,
-            expires: process.env.AUTH_JWT_EXPIRES || 15 * 60 * 1000
+            expires: process.env.AUTH_JWT_EXPIRES || "15m"
         },
         refresh: {
             secret: process.env.AUTH_REFRESH_SECRET,
-            expires: process.env.AUTH_REFRESH_EXPIRES || 15 * 24 * 60 * 60 * 1000
+            expires: process.env.AUTH_REFRESH_EXPIRES || "7d"
         }
     }
 };
