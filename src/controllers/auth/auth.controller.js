@@ -1,0 +1,62 @@
+import config from "../../config/config";
+import { encodeToken } from "../../utils/auth.utils";
+
+import service from '../../service/auth/auth.service.js';
+import logger from "../../config/winston.js";
+
+const controller = {
+
+    /**
+     * Allows the user to login
+     * 
+     * Username and password are passed via the request body as a
+     * json object
+     * 
+     * @param {object} req - The request
+     * @param {object} res - The response
+     * @param {object} req.body - The json payload
+     * @param {string} req.body.username - The users username
+     * @param {string} req.body.password - The users password
+     * @returns {string} The access token for a successful login
+     */
+    login: async (req, res) => {
+
+        /** Validation of required request parameters */
+        if(!req.body.username || req.body.username === undefined || req.body.username === null || typeof req.body.username != "string"){
+            logger.log('error', 'Username was not found in the request body for login or is invalid.')
+            return res.status(404).json({ message: "Validation failure. Username is missing or invalid."});
+        }
+
+        if(!req.body.password || req.body.password === undefined || req.body.password === null || typeof req.body.password != "string"){
+            logger.log('error', 'Password was not found in the request body for login or is invalid.')
+            return res.status(404).json({ message: "Validation failure. Password is missing or invalid."});
+        }
+
+        try {
+
+            /** Attempt the login process */
+            const { accessToken, refreshToken, error } = await service.login(req.body.username, req.body.password);
+
+            if(error){
+                logger.log('error', error);
+
+                if(error === "User not found.") return res.status(404).json({ message: "No user found with supplied name"});
+                if(error === "Password validation failure.") return res.status(404).json({ message: "The supplied password is incorrect"});
+            }
+
+            // Return the accessToken and set the refreshToken in a http only cookie
+            res.cookie('refreshToken', refreshToken, {
+                httpOnly: true,
+                secure: config.application.mode === 'production' ? true : false,
+            });
+            res.status(200).json({ token: accessToken });
+
+        } catch(err) {
+            logger.log('error', err.message);
+            return res.status(500).json( { message: "Internal server error. Please try again later." })
+        }
+
+    }
+}
+
+export default controller;
