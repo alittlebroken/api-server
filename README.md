@@ -47,7 +47,6 @@ npm run test
 | supertest | Yes |
 | vitest | Yes |
 | dotenv | Yes |
-| sequelize-mock | Yes |
 
 ## Environment files
 
