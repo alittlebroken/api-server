@@ -21,7 +21,8 @@ if(config.application.mode === "development"){
     conn = new Sequelize({
         dialect: 'sqlite',
         storage: ':memory:',
-        logging: false
+        logging: false,
+        pool: { max: 1, idle: Infinity, maxUses: Infinity },
     })
 } else {
     /** Setup the sequalize connection */
@@ -49,7 +50,14 @@ try {
      * so we can then perform crud operations on them.
      */
     if(config.application.mode === "development"){
-        await conn.sync({ force: true });
+        
+        conn.sync({ force: true })
+        .then(() => {
+            console.log('Models created successfully');
+        })
+        .catch((err) => {
+            console.log(err);
+        });
         
         /** Create Some test user data */
         await User.create({ 
@@ -60,6 +68,7 @@ try {
             status: "active",
             roles: ["user"]
         });
+
     }
 
 } catch(error) {
