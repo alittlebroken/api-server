@@ -17,7 +17,7 @@ const service = {
 
             /** Get the user from the DB */
             const user = await User.findOne({
-                attributes: [ 'userId', 'username', 'password', 'roles', 'status'],
+                attributes: [ 'userId', 'email', 'username', 'password', 'displayName', 'roles', 'status'],
                 where: {
                     username: username
                 }
@@ -46,7 +46,7 @@ const service = {
                 );
 
                 refreshToken = await encodeToken({
-                        id: parseInt(user.id),
+                        id: parseInt(user.userId),
                         username: user.username,
                         roles: user.roles
                     }, 
@@ -72,7 +72,9 @@ const service = {
             return { error: err.message }
         }
 
-    }
+    },
+
+    
 
 };
 
