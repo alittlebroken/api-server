@@ -47,6 +47,7 @@ npm run test
 | supertest | Yes |
 | vitest | Yes |
 | dotenv | Yes |
+| sqlite3 | Yes |
 
 ## Environment files
 
