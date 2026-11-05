@@ -103,3 +103,8 @@ npm run test
 ```bash
 npm run dbSetup
 ```
+
+## TODO
+
+- Split user credentials into a separate table
+- 
