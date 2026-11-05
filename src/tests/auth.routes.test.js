@@ -13,9 +13,10 @@ const { mockUser } = vi.hoisted(() => ({
     }
 }));
 
-vi.mock('../models/auth/User.model.js', () => {
+vi.mock('../db/database.js', () => {
     return {
-        default: mockUser
+        default: mockUser,
+        User: mockUser,
     }
 });
 
