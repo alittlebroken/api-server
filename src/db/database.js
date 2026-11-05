@@ -4,7 +4,7 @@ import config from '../config/config.js';
 import logger from '../config/winston.js';
 
 /** Setup the sequalize connection */
-let db = new Sequelize(config.database.name, config.database.user, config.database.pass, {
+export let db = new Sequelize(config.database.name, config.database.user, config.database.pass, {
     host: config.database.host,
     port: config.database.port,
     dialect: config.database.dialect,
@@ -22,4 +22,6 @@ try {
     logger.log('error', "Issue connecting to the database: " + error.message);
 }
 
-export default db;
+/** Import the models config and define them here */
+import UserConfig from '../models/auth/User.model.js';
+export const User = db.define("User", UserConfig);

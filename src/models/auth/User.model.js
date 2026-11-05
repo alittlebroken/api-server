@@ -1,8 +1,6 @@
-import { Sequelize, DataTypes } from "sequelize";
-import db from "../../db/database";
+import { DataTypes } from "sequelize";
 
-const User = db.define(
-    'User',
+const UserConfig =
     {
         userId: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
         username: { type: DataTypes.STRING, allowNull: false },
@@ -10,7 +8,6 @@ const User = db.define(
         displayName: { type: DataTypes.STRING, allowNull: false },
         status: { type: DataTypes.STRING, allowNull: false, defaultValue: 'ACTIVE' },
         roles: { type: DataTypes.ARRAY(DataTypes.STRING) },
-    }
-);
+    };
 
-export default User;
+export default UserConfig;
