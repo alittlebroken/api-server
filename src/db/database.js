@@ -3,6 +3,7 @@ import { Sequelize } from 'sequelize';
 import config from '../config/config.js';
 import logger from '../config/winston.js';
 import UserConfig from '../models/auth/User.model.js';
+import { argon2 } from 'argon2';
 
 /** Database vars */
 let db = undefined;
@@ -17,7 +18,7 @@ let User = undefined;
  * like postgres
  */
 if(config.application.mode === "development"){
-    cnn = new Sequelize({
+    conn = new Sequelize({
         dialect: 'sqlite',
         storage: ':memory:',
         logging: false
@@ -49,6 +50,16 @@ try {
      */
     if(config.application.mode === "development"){
         await conn.sync({ force: true });
+        
+        /** Create Some test user data */
+        await User.create({ 
+            username: "testUser1",
+            email: "testuser1@test.co.uk",
+            password: await argon2d.hash("testUser1"),
+            displayName: "Test User 1",
+            status: "active",
+            roles: ["user"]
+        });
     }
 
 } catch(error) {
