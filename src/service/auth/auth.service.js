@@ -3,7 +3,7 @@ import argon2 from 'argon2';
 import config from '../../config/config.js';
 import logger from '../../config/winston.js';
 import { encodeToken } from '../../utils/auth.utils.js';
-import User from '../../models/auth/User.model.js';
+import { User } from '../../db/database.js';
 
 const service = {
 

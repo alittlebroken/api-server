@@ -12,7 +12,7 @@ const { mockUser } = vi.hoisted(() => ({
     }
 }));
 
-vi.mock('../models/auth/User.model.js', () => {
+vi.mock('../db/database.js', () => {
     return {
         default: mockUser
     }
@@ -41,7 +41,7 @@ describe('Auth controller', () => {
 
         });
 
-        afterEach(async () => {
+        afterEach(async () => { 
 
             accToken = undefined;
             refToken = undefined;
