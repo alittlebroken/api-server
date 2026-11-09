@@ -7,7 +7,6 @@ export const setupTestDB = async () => {
 
     beforeAll(async () => {
 
-        
         db.sync()
         .then(async () => {
 
@@ -29,6 +28,22 @@ export const setupTestDB = async () => {
             console.log("setupTestDB > beforeAll > Catch Error");
             console.log(err.message);
             console.log('=== DEBUG ===');
+        });
+
+    });
+
+    beforeEach(async () => {
+
+        /**
+         * Create the default user
+         */
+        await User.create({
+                email: "testuser1@test.co.uk",
+                username: "testUser1",
+                password: await argon2.hash("testUser1"),
+                displayName: "Test User 1",
+                status: "active",
+                roles: "user"
         });
 
     });
