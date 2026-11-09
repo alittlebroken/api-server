@@ -1,9 +1,9 @@
 import argon2 from 'argon2';
 
-import config from '../../config/config.js';
-import logger from '../../config/winston.js';
-import { encodeToken } from '../../utils/auth.utils.js';
-import { User } from '../../db/database.js';
+import config from '@/config/config.js';
+import logger from '@/config/winston.js';
+import { encodeToken } from '@/utils/auth.utils.js';
+import { User } from '@/db/database.js';
 
 const service = {
 
@@ -16,6 +16,7 @@ const service = {
         try{
 
             /** Get the user from the DB */
+            
             const user = await User.findOne({
                 attributes: [ 'userId', 'email', 'username', 'password', 'displayName', 'roles', 'status'],
                 where: {
@@ -74,7 +75,93 @@ const service = {
 
     },
 
-    
+    register: async (email, username, password, displayName) => {
+
+        /** Perform validation */
+        if(!username || username === undefined || username === null || typeof username != 'string'){
+            let errorMessage = "Validation failure. Username is missing or invalid.";
+            logger.log("error", errorMessage);
+            return { user: undefined, tokens: undefined, error: errorMessage };
+        }
+
+        if(!email || email === undefined || email === null || typeof email != 'string'){
+            let errorMessage = "Validation failure. Email is missing or invalid.";
+            logger.log("error", errorMessage);
+            return { user: undefined, tokens: undefined, error: errorMessage };
+        }
+
+        if(!password || password === undefined || password === null || typeof password != 'string'){
+            let errorMessage = "Validation failure. Password is missing or invalid.";
+            logger.log("error", errorMessage);
+            return { user: undefined, tokens: undefined, error: errorMessage };
+        }
+
+        if(!displayName || displayName === undefined || displayName === null || typeof displayName != 'string'){
+            let errorMessage = "Validation failure. Display Name is missing or invalid.";
+            logger.log("error", errorMessage);
+            return { user: undefined, tokens: undefined, error: errorMessage };
+        }
+
+        try {
+
+            /**
+             * Create the new user
+             */
+            const result = await User.create({
+                username: username,
+                email: email,
+                password: await argon2.hash(password),
+                displayName: displayName,
+                status: 'active',
+                roles: "user"
+            });
+
+            /** Extract out the user data from the result */
+            let user = result.dataValues;
+
+            /**
+             *  Generate some tokens
+             */
+            let accessToken = await encodeToken({
+                    id: parseInt(user.userId),
+                    username: user.username,
+                    roles: user.roles
+                }, 
+                config.auth.jwt.secret, 
+                config.auth.jwt.expires
+            );
+
+            let refreshToken = await encodeToken({
+                    id: parseInt(user.userId),
+                    username: user.username,
+                    roles: user.roles
+                }, 
+                config.auth.refresh.secret, 
+                config.auth.refresh.expires
+            );
+
+            return {
+                error: undefined,
+                user: user,
+                tokens: {
+                    access: accessToken.token,
+                    refresh: refreshToken.token
+                }
+            }
+
+        } catch(err) {
+            logger.log('error', err.message);
+            return {
+                user: undefined,
+                tokens: {
+                    access: undefined,
+                    refresh: undefined
+                },
+                error: err.message
+            }
+        }
+
+    },
 
 };
 
