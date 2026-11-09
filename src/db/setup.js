@@ -1,11 +1,4 @@
-import db from './database.js';
-
-/**
- * MODELS
- * 
- * For each model you wish to setup within the database, include them here
- */
-import User from '../models/auth/User.model.js';
+import db, { User } from './database.js';
 
 /**
  * Relationships
