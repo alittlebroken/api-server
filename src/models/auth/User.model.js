@@ -1,6 +1,7 @@
 import { DataTypes } from "sequelize";
+//import db from '@/db/database.js';
 
-const UserConfig =
+const userConfig =
     {
         userId: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
         username: { type: DataTypes.STRING, allowNull: false },
@@ -11,4 +12,6 @@ const UserConfig =
         roles: { type: DataTypes.STRING, allowNull: false, defaultValue: "user" },
     };
 
-export default UserConfig;
+//const User = await db.define('User', userConfig, { tableName: 'Users' });
+
+export default userConfig;
