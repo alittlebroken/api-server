@@ -1,16 +1,17 @@
 import { Sequelize } from 'sequelize';
 
-import config from '../config/config.js';
-import logger from '../config/winston.js';
-import UserConfig from '../models/auth/User.model.js';
-import { argon2 } from 'argon2';
+import config from '@/config/config.js';
+import logger from '@/config/winston.js';
 
 /** Database vars */
-let db = undefined;
-let conn = undefined;
+let db;
+let dbConfig;
 
 /** Model vars for exporting */
 let User = undefined;
+
+/** Import config files for models */
+import userConfig from '@/models/auth/User.model.js';
 
 /** If we are in development we need to 
  *  use the in memory sqlite DB and in 
@@ -18,62 +19,47 @@ let User = undefined;
  * like postgres
  */
 if(config.application.mode === "development"){
-    conn = new Sequelize({
+
+    dbConfig = {
         dialect: 'sqlite',
-        storage: ':memory:',
+        storage: './database.sqlite',
         logging: false,
         pool: { max: 1, idle: Infinity, maxUses: Infinity },
-    })
+    }
+
 } else {
-    /** Setup the sequalize connection */
-    conn = new Sequelize(config.database.name, config.database.user, config.database.pass, {
+
+    dbConfig = {
+        database: config.database.name,
+        username: config.database.user,
+        password: config.database.pass,
         host: config.database.host,
         port: config.database.port,
         dialect: config.database.dialect,
         timezone: config.database.timezone
-    });
-}
+    }
 
+}
 
 /** Open the connection and assign it to a local var called db
  *  which we then use to export
 */
 try {
-    await conn.authenticate();
-    logger.log('info', "Connected to the database.")
-    /** Import the models config and define them here */
+
+    db = new Sequelize(dbConfig);
     
-    db = conn;
-    User = conn.define("User", UserConfig);
+    /** Open the connection to the database */
+    await db.authenticate();
+    logger.log('info', "Connected to the database.")
 
-    /** If we are in development then we need to synch the Models with the database
-     * so we can then perform crud operations on them.
+    /**
+     * Define the models
      */
-    if(config.application.mode === "development"){
-        
-        conn.sync({ force: true })
-        .then(() => {
-            console.log('Models created successfully');
-        })
-        .catch((err) => {
-            console.log(err);
-        });
-        
-        /** Create Some test user data */
-        await User.create({ 
-            username: "testUser1",
-            email: "testuser1@test.co.uk",
-            password: await argon2d.hash("testUser1"),
-            displayName: "Test User 1",
-            status: "active",
-            roles: ["user"]
-        });
-
-    }
+    User = db.define('User', userConfig, { tableName: 'Users' });
 
 } catch(error) {
-    conn = null;
     logger.log('error', "Issue connecting to the database: " + error.message);
 }
 
-export { db, User};
+export { User };
+export default db;
