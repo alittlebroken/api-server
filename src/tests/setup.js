@@ -49,7 +49,12 @@ export const setupTestDB = async () => {
     });
 
     afterEach(async () => {
-        await db.truncate();
+        await db.truncate({ restartIdentity: true });
+
+        /** In development we use sqllite so we have to 
+         *  restart the identities direct
+         */
+        await db.query(`DELETE from "sqlite_sequence" WHERE "name" = 'Users' `);
     });
 
     afterAll(async () => {
