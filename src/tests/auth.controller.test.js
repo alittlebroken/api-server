@@ -459,6 +459,32 @@ describe('Auth controller', () => {
 
         });
 
+        it('should return status 409 if email address is already in use', async () => {
+
+            /** 
+             * Set the variables used to pass to the request body
+             */
+            let username = "testUser11";
+            let email = "testuser1@test.co.uk";
+            let password = "testUser11";
+            let displayName = "Test User 11";
+
+            /** Create the request and response objects for the controller */
+            const req = { body: { username, email, password, displayName } };
+            const res = { cookie: vi.fn(), status: vi.fn().mockReturnThis(), json: vi.fn() };
+
+            /** Execute the request */
+            await controller.register(req, res);
+
+            /** Check that what is run/returned is what we expect */
+            expect(res.status).toHaveBeenCalled();
+            expect(res.status).toHaveBeenCalledWith(409);
+
+            expect(res.json).toHaveBeenCalled();
+            expect(res.json).toHaveBeenCalledWith({ message: "Email address is already in use" });
+
+        });
+
         it('should return status 500 for any other error', async () => {
 
             /**

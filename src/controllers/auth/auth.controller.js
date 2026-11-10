@@ -99,6 +99,18 @@ const controller = {
                 req.body.displayName
             );
 
+            /** Check for any error messages */
+            if(result.error){
+
+                /** Check the type of error */
+                if(result.error === "Validation failure. Email address is already in use.") {
+                    return res.status(409).json({ message: "Email address is already in use" });
+                } else {
+                    throw new Error(err.message);
+                }
+
+            }
+
             /** Set the refresh token */
             res.cookie('refreshToken', result.tokens.refresh, {
                 httpOnly: true,
