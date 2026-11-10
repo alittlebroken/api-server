@@ -77,32 +77,14 @@ const service = {
 
     register: async (email, username, password, displayName) => {
 
-        /** Perform validation */
-        if(!username || username === undefined || username === null || typeof username != 'string'){
-            let errorMessage = "Validation failure. Username is missing or invalid.";
-            logger.log("error", errorMessage);
-            return { user: undefined, tokens: undefined, error: errorMessage };
-        }
-
-        if(!email || email === undefined || email === null || typeof email != 'string'){
-            let errorMessage = "Validation failure. Email is missing or invalid.";
-            logger.log("error", errorMessage);
-            return { user: undefined, tokens: undefined, error: errorMessage };
-        }
-
-        if(!password || password === undefined || password === null || typeof password != 'string'){
-            let errorMessage = "Validation failure. Password is missing or invalid.";
-            logger.log("error", errorMessage);
-            return { user: undefined, tokens: undefined, error: errorMessage };
-        }
-
-        if(!displayName || displayName === undefined || displayName === null || typeof displayName != 'string'){
-            let errorMessage = "Validation failure. Display Name is missing or invalid.";
-            logger.log("error", errorMessage);
-            return { user: undefined, tokens: undefined, error: errorMessage };
-        }
-
         try {
+
+            /** Check if the email specified is not already in use */
+            const emailCheck = await User.findOne({ where: {
+                email: email
+            } });
+            
+            if(emailCheck && Object.keys(emailCheck?.dataValues).length > 0) return { error: "Validation failure. Email address is already in use.", user: undefined, tokens: { access: undefined, refresh: undefined } };
 
             /**
              * Create the new user

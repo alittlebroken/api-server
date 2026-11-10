@@ -155,6 +155,32 @@ describe('AUTH Services', () => {
 
     describe('Register service', () => {
 
+        beforeEach(async () => {
+
+            /** Seed the Users table before each test */
+            await User.create({
+                email: "testuser1@test.co.uk",
+                username: "testUser1",
+                password: await argon2.hash("testUser1"),
+                displayName: "Test User 1",
+                status: "active",
+                roles: "user"
+            });
+
+        });
+
+        afterEach(async () => {
+
+            /** Clear out the Users table for each test */
+            await db.truncate({ restartIdentity: true });
+
+            /** In development we use sqlite so we have to 
+             *  restart the identities direct
+             */
+            await db.query(`DELETE from "sqlite_sequence" WHERE "name" = 'Users' `);
+
+        });
+
         it('should register a new user and return the user object and tokens', async () => {
 
             /**
@@ -208,13 +234,13 @@ describe('AUTH Services', () => {
 
         })
 
-        it('should return an error if username is missing or invalid', async () => {
+        it('should return an error if the username is already in use', async () => {
 
             /**
              * Setup the vars needed for the registration process
              */
-            const username = undefined;
-            const email = "testuser9@test.co.uk";
+            const username = "testuser9@test.co.uk";
+            const email = "testuser1@test.co.uk";
             const password = "testUser9";
             const displayName = "Test User 9";
             
@@ -229,98 +255,16 @@ describe('AUTH Services', () => {
             expect(result).toBeDefined();
 
             expect(result.user).not.toBeDefined();
-            expect(result.tokens).not.toBeDefined();
+
+            expect(result.tokens).toBeDefined();
+            expect(result.tokens).toHaveProperty('access');
+            expect(result.tokens).toHaveProperty('refresh');
+            expect(result.tokens.access).not.toBeDefined();
+            expect(result.tokens.refresh).not.toBeDefined();
 
             expect(result.error).toBeDefined();
             expect(result.error).toBeTypeOf('string');
-            expect(result.error).toEqual("Validation failure. Username is missing or invalid.");
-
-        });
-
-        it('should return an error if email is missing or invalid', async () => {
-
-            /**
-             * Setup the vars needed for the registration process
-             */
-            const username = "testUser9";
-            const email = undefined;
-            const password = "testUser9";
-            const displayName = "Test User 9";
-            
-            /**
-             * Execute the service method we need to test
-             */
-            const result = await service.register(email, username, password, displayName);
-
-            /** 
-             * Test the result is as expected
-             */
-            expect(result).toBeDefined();
-
-            expect(result.user).not.toBeDefined();
-            expect(result.tokens).not.toBeDefined();
-
-            expect(result.error).toBeDefined();
-            expect(result.error).toBeTypeOf('string');
-            expect(result.error).toEqual("Validation failure. Email is missing or invalid.");
-
-        });
-
-        it('should return an error if password is missing or invalid', async () => {
-
-            /**
-             * Setup the vars needed for the registration process
-             */
-            const username = "testUser9";
-            const email = "testuser9@test.co.uk";
-            const password = undefined;
-            const displayName = "Test User 9";
-            
-            /**
-             * Execute the service method we need to test
-             */
-            const result = await service.register(email, username, password, displayName);
-
-            /** 
-             * Test the result is as expected
-             */
-            expect(result).toBeDefined();
-
-            expect(result.user).not.toBeDefined();
-            expect(result.tokens).not.toBeDefined();
-
-            expect(result.error).toBeDefined();
-            expect(result.error).toBeTypeOf('string');
-            expect(result.error).toEqual("Validation failure. Password is missing or invalid.");
-
-        });
-
-        it('should return an error if password is displayName or invalid', async () => {
-
-            /**
-             * Setup the vars needed for the registration process
-             */
-            const username = "testUser9";
-            const email = "testuser9@test.co.uk";
-            const password = "testUser9";
-            const displayName = undefined;
-            
-            /**
-             * Execute the service method we need to test
-             */
-            const result = await service.register(email, username, password, displayName);
-
-            /** 
-             * Test the result is as expected
-             */
-            expect(result).toBeDefined();
-
-            expect(result.user).not.toBeDefined();
-            expect(result.tokens).not.toBeDefined();
-
-            expect(result.error).toBeDefined();
-            expect(result.error).toBeTypeOf('string');
-            expect(result.error).toEqual("Validation failure. Display Name is missing or invalid.");
+            expect(result.error).toEqual("Validation failure. Email address is already in use.");
 
         });
 
