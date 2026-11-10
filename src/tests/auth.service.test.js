@@ -305,7 +305,7 @@ describe('AUTH Services', () => {
             
         });
 
-        it('should return an error if there is an issue with the Model', async () => {
+        it('should return an error if there is any other issue', async () => {
 
             /**
              * Mock the failed Model
