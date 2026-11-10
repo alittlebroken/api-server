@@ -1,27 +1,13 @@
 import request, { agent } from "supertest";
 import { vi, describe, it, expect, beforeEach, afterEach, assert } from "vitest";
-
-/**
- * Mock the user model
- */
-const { mockUser } = vi.hoisted(() => ({
-    mockUser: {
-        findOne: vi.fn(),
-        create: vi.fn(),
-        findAll: vi.fn(),
-    }
-}));
-
-vi.mock('../db/database.js', () => {
-    return {
-        default: mockUser
-    }
-});
+import jwt from 'jsonwebtoken';
+import argon2 from 'argon2';
 
 import config from '../config/config.js';
 import service from '../service/auth/auth.service.js';
 import controller from '../controllers/auth/auth.controller.js';
 import { encodeToken } from "../utils/auth.utils.js";
+import db, { User } from '@/db/database.js';
 
 /** Vars for mocking the tokens */
 let accToken = undefined;
@@ -248,6 +234,268 @@ describe('Auth controller', () => {
             expect(res.json).toHaveBeenCalledWith({ message: "Internal server error. Please try again later."});
 
             expect(res.cookie).not.toHaveBeenCalledOnce();
+
+        });
+
+    });
+
+    describe('Register', () => {
+
+        beforeEach(async () => {
+
+            /**
+            * Create a default user
+            */
+            await User.create({
+                email: "testuser1@test.co.uk",
+                username: "testUser1",
+                password: await argon2.hash("testUser1"),
+                displayName: "Test User 1",
+                status: "active",
+                roles: "user"
+            });
+
+        });
+
+        afterEach(async () => {
+            await db.truncate({ restartIdentity: true });
+
+            /** In development we use sqllite so we have to 
+             *  restart the identities direct
+             */
+            await db.query(`DELETE from "sqlite_sequence" WHERE "name" = 'Users' `);
+        });
+
+        it('should return status 200, the user created and an access and refresh tokens', async () => {
+
+            /**
+             * Set the request body properties
+             */
+            let username = "testUser10";
+            let password = "testUser10";
+            let displayName = "Test User 10";
+            let email = "testuser10@test.co.uk";
+
+            /** Generate some tokens */
+            let payload = { id: 3, username: "testUser10", email: "testuser10@test.co.uk", roles: "user", status: "active" };
+            let accessToken = await encodeToken(payload, config.auth.jwt.secret, config.auth.jwt.expires);
+            
+            /**
+             * As the tokens include an iat, the signature of a token
+             * changes each second and it is not good practice to remove
+             * it as it can cause issues when verifying the tokens later
+             * on.
+             * 
+             * So we mock the JWT library just for the tests to ensure 
+             * that the test does not fail due to the tokens being 
+             * created a second or two apart.
+             */
+            vi.spyOn(jwt, 'sign').mockReturnValue(accessToken.token);
+
+            /**
+             * Mock the request and response objects
+             */
+            const req = {  body: { username, password, displayName, email } };
+            const res = { cookie: vi.fn(), status: vi.fn().mockReturnThis(), json: vi.fn() };
+
+            /** Set the expected values to be used by the controller */
+            const expectedPayload = {
+                user: {
+                    id: 3,
+                    username: "testUser10",
+                    displayName: "Test User 10",
+                    email: "testuser10@test.co.uk",
+                    roles: "user",
+                    status: "active"
+                },
+                token: accessToken.token
+            }
+
+            /** Call the controllers method we wish to test */
+            await controller.register(req, res);
+
+            /**
+             * Test whether the result is as we expect it to be
+             */
+            expect(res.status).toHaveBeenCalledOnce();
+            expect(res.status).toHaveBeenCalledWith(200); 
+
+            expect(res.json).toHaveBeenCalledOnce();
+            expect(res.json).toHaveBeenCalledWith(expectedPayload);
+
+            expect(res.cookie).toHaveBeenCalledOnce();
+            expect(res.cookie).toHaveBeenCalledWith('refreshToken', accessToken.token, {
+                httpOnly: true,
+                secure: false
+            });
+
+        });
+
+        it('should return status 404 if username is missing or invalid', async () => {
+
+            /**
+             * Set the request body properties
+             */
+            let username = undefined;
+            let password = "testUser10";
+            let displayName = "Test User 10";
+            let email = "testuser10@test.co.uk";
+
+            /**
+             * Mock the request and response objects
+             */
+            const req = {  body: { username, password, displayName, email } };
+            const res = { status: vi.fn().mockReturnThis(), json: vi.fn() };
+
+            /** Call the controllers method we wish to test */
+            await controller.register(req, res);
+
+            /**
+             * Test whether the result is as we expect it to be
+             */
+            expect(res.status).toHaveBeenCalledOnce();
+            expect(res.status).toHaveBeenCalledWith(404); 
+
+            expect(res.json).toHaveBeenCalledOnce();
+            expect(res.json).toHaveBeenCalledWith({
+                message: "Validation failure. Username is missing or incorrect"
+            });
+
+        });
+
+        it('should return status 404 if password is missing or invalid', async () => {
+
+            /**
+             * Set the request body properties
+             */
+            let username = "testUser10";
+            let password = undefined;
+            let displayName = "Test User 10";
+            let email = "testuser10@test.co.uk";
+
+            /**
+             * Mock the request and response objects
+             */
+            const req = {  body: { username, password, displayName, email } };
+            const res = { status: vi.fn().mockReturnThis(), json: vi.fn() };
+
+            /** Call the controllers method we wish to test */
+            await controller.register(req, res);
+
+            /**
+             * Test whether the result is as we expect it to be
+             */
+            expect(res.status).toHaveBeenCalledOnce();
+            expect(res.status).toHaveBeenCalledWith(404); 
+
+            expect(res.json).toHaveBeenCalledOnce();
+            expect(res.json).toHaveBeenCalledWith({
+                message: "Validation failure. Password is missing or incorrect"
+            });
+
+        });
+
+        it('should return status 404 if displayName is missing or invalid', async () => {
+
+            /**
+             * Set the request body properties
+             */
+            let username = "testUser10";
+            let password = "testUser10";
+            let displayName = undefined;
+            let email = "testuser10@test.co.uk";
+
+            /**
+             * Mock the request and response objects
+             */
+            const req = {  body: { username, password, displayName, email } };
+            const res = { status: vi.fn().mockReturnThis(), json: vi.fn() };
+
+            /** Call the controllers method we wish to test */
+            await controller.register(req, res);
+
+            /**
+             * Test whether the result is as we expect it to be
+             */
+            expect(res.status).toHaveBeenCalledOnce();
+            expect(res.status).toHaveBeenCalledWith(404); 
+
+            expect(res.json).toHaveBeenCalledOnce();
+            expect(res.json).toHaveBeenCalledWith({
+                message: "Validation failure. Display Name is missing or incorrect"
+            });
+
+        });
+
+        it('should return status 404 if email is missing or invalid', async () => {
+
+            /**
+             * Set the request body properties
+             */
+            let username = "testUser10";
+            let password = "testUser10";
+            let displayName = "Test User 10";
+            let email = undefined;
+
+            /**
+             * Mock the request and response objects
+             */
+            const req = {  body: { username, password, displayName, email } };
+            const res = { status: vi.fn().mockReturnThis(), json: vi.fn() };
+
+            /** Call the controllers method we wish to test */
+            await controller.register(req, res);
+
+            /**
+             * Test whether the result is as we expect it to be
+             */
+            expect(res.status).toHaveBeenCalledOnce();
+            expect(res.status).toHaveBeenCalledWith(404); 
+
+            expect(res.json).toHaveBeenCalledOnce();
+            expect(res.json).toHaveBeenCalledWith({
+                message: "Validation failure. Email is missing or incorrect"
+            });
+
+        });
+
+        it('should return status 500 for any other error', async () => {
+
+            /**
+             * Spy on the User model so we can mock a database connection
+             * issue
+             */
+            vi.spyOn(service, 'register').mockRejectedValue(() => {
+                new Error("Some random error has occurred");
+            });
+
+            /**
+             * Set the request body properties
+             */
+            let username = "testUser10";
+            let password = "testUser10";
+            let displayName = "Test User 10";
+            let email = "testuser10@test.co.uk";
+
+            /**
+             * Mock the request and response objects
+             */
+            const req = {  body: { username, password, displayName, email } };
+            const res = { cookie: vi.fn(), status: vi.fn().mockReturnThis(), json: vi.fn() };
+
+            /** Call the controllers method we wish to test */
+            await controller.register(req, res);
+
+            /**
+             * Test whether the result is as we expect it to be
+             */
+            expect(res.status).toHaveBeenCalledOnce();
+            expect(res.status).toHaveBeenCalledWith(500); 
+
+            expect(res.json).toHaveBeenCalledOnce();
+            expect(res.json).toHaveBeenCalledWith({
+                message: "Internal Server Issue. Please try again later."
+            });
 
         });
 

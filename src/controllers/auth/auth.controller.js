@@ -56,7 +56,74 @@ const controller = {
             return res.status(500).json( { message: "Internal server error. Please try again later." })
         }
 
-    }
+    },
+
+    /**
+     * Registers a user into the system
+     * 
+     * @param {object} req - The request
+     * @param {object} res - The response
+     * @param {object} req.body - The json payload
+     * @param {string} req.body.username - The desired username
+     * @param {string} req.body.password - The desired password
+     * @param {string} req.body.displayName - The desired displayName
+     * @param {string} req.body.email - The desired email address for the user
+     * @returns {string} The access token for a successful login
+     */
+    register: async (req, res) => {
+
+        /** Validation */
+        if(!req.body.username || req.body.username === undefined || req.body.username === null || typeof req.body.username != 'string'){
+            return res.status(404).json({ message: "Validation failure. Username is missing or incorrect" });
+        }
+
+        if(!req.body.password || req.body.password === undefined || req.body.password === null || typeof req.body.password != 'string'){
+            return res.status(404).json({ message: "Validation failure. Password is missing or incorrect" });
+        }
+
+        if(!req.body.displayName || req.body.displayName === undefined || req.body.displayName === null || typeof req.body.displayName != 'string'){
+            return res.status(404).json({ message: "Validation failure. Display Name is missing or incorrect" });
+        }
+
+        if(!req.body.email || req.body.email === undefined || req.body.email === null || typeof req.body.email != 'string'){
+            return res.status(404).json({ message: "Validation failure. Email is missing or incorrect" });
+        }
+    
+        try{
+
+            /** Register the user with the service */
+            const result = await service.register(
+                req.body.email,
+                req.body.username,
+                req.body.password,
+                req.body.displayName
+            );
+
+            /** Set the refresh token */
+            res.cookie('refreshToken', result.tokens.refresh, {
+                httpOnly: true,
+                secure: config.application.mode === 'production' ? true : false,
+            } );
+
+            /** Send the result back with the user object and access token */
+            res.status(200).json({
+                user: { 
+                    id: result.user.userId, 
+                    username: result.user.username, 
+                    displayName: result.user.displayName,
+                    email: result.user.email,
+                    roles: result.user.roles,
+                    status: result.user.status 
+                },
+                token: result.tokens.access
+            })
+
+        } catch(err) {
+            logger.log('error', err.message);
+            return res.status(500).json({ message: "Internal Server Issue. Please try again later." });
+        }
+
+    },
 }
 
 export default controller;
