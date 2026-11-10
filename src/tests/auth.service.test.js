@@ -5,7 +5,7 @@ import config from '@/config/config.js';
 import { setupTestDB } from './setup.js';
 import { encodeToken } from '@/utils/auth.utils.js';
 import service from '@/service/auth/auth.service.js';
-import { User } from '@/db/database.js';
+import db, { User } from '@/db/database.js';
 
 /** 
  * Vars for tokens
@@ -20,11 +20,33 @@ describe('AUTH Services', () => {
     describe('Login service', () => {
 
         beforeEach(async () => {
+
+            /**
+            * Create a default user
+            */
+            await User.create({
+                email: "testuser1@test.co.uk",
+                username: "testUser1",
+                password: await argon2.hash("testUser1"),
+                displayName: "Test User 1",
+                status: "active",
+                roles: "user"
+            });
+
             /** generate fresh tokens */
             let payload = { id: 2, username: "tesUser1", roles: ["user"] };
             validToken = await encodeToken(payload, config.auth.jwt.secret, config.auth.jwt.expires);
             validRefreshToken = await encodeToken(payload, config.auth.refresh.secret, config.auth.refresh.expires);
         });
+
+        afterEach(async () => {
+             await db.truncate({ restartIdentity: true });
+
+            /** In development we use sqllite so we have to 
+             *  restart the identities direct
+             */
+            await db.query(`DELETE from "sqlite_sequence" WHERE "name" = 'Users' `);
+        })
 
         it('should log a user into the system and return a valid token', async () => {
 
