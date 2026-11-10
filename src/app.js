@@ -58,7 +58,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerConfig));
 
 /** Authentication routes */
 import authRoutes from './routes/api/v1/auth/auth.routes.js';
-app.use('/api/v1/auth/login', authRoutes);
+app.use('/api/v1/auth', authRoutes);
 
 /** Test routes. 
  * 
