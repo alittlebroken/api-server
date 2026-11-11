@@ -24,10 +24,7 @@ export const setupTestDB = async () => {
 
         })
         .catch((err) => {
-            console.log('=== DEBUG ===');
-            console.log("setupTestDB > beforeAll > Catch Error");
             console.log(err.message);
-            console.log('=== DEBUG ===');
         });
 
     });

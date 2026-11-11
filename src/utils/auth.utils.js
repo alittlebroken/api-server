@@ -25,7 +25,6 @@ export const encodeToken = async (payload, salt, expires, type="access") => {
         return { token: accessToken, error: undefined};
 
     } catch(err) {
-        console.log(err.message);
         logger.log("error", err.message);
         return { token: undefined, error: "Unable to generate token." };
     }
