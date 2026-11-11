@@ -107,4 +107,5 @@ npm run dbSetup
 ## TODO
 
 - Split user credentials into a separate table
+- Make usernames unique
 - 
