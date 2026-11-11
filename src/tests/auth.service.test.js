@@ -234,7 +234,7 @@ describe('AUTH Services', () => {
 
         })
 
-        it('should return an error if the username is already in use', async () => {
+        it('should return an error if the email is already in use', async () => {
 
             /**
              * Setup the vars needed for the registration process
