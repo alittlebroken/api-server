@@ -100,17 +100,21 @@ const controller = {
             );
 
             /** Check for any error messages */
-            if(result.error){
-
+            if(result?.error){
+                
                 /** Check the type of error */
                 if(result.error === "Validation failure. Email address is already in use.") {
+                    logger.log('error', "Validation failure. Email address is already in use.")
                     return res.status(409).json({ message: "Email address is already in use" });
                 } else {
-                    throw new Error(err.message);
+                    
+                    logger.log('error', result?.error || "Unknown error has occurred")
+                    throw new Error(result?.error || "Unknown error has occurred");
                 }
 
             }
 
+            
             /** Set the refresh token */
             res.cookie('refreshToken', result.tokens.refresh, {
                 httpOnly: true,
@@ -131,6 +135,7 @@ const controller = {
             })
 
         } catch(err) {
+            
             logger.log('error', err.message);
             return res.status(500).json({ message: "Internal Server Issue. Please try again later." });
         }
