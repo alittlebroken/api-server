@@ -4,6 +4,31 @@
  * 
  *   schemas:
  *   
+ *     RequestBodyRegistration:
+ *       type: object
+ *       properties:
+ *         userId:
+ *           type: integer
+ *           description: The users id
+ *         username:
+ *           type: string
+ *           description: The users login name
+ *         email:
+ *            type: string
+ *            description: The users email address
+ *         displayName:
+ *            type: string
+ *            description: The users display name
+ *         password:
+ *            type: string
+ *            description: The users desired password
+ *       required:
+ *        - userId
+ *        - username
+ *        - email
+ *        - displayName
+ *        - password
+ * 
  *     ResponseBodyUser:
  *       type: object
  *       properties:
@@ -71,10 +96,16 @@ route.post('/login', controller.login);
 
 /**
  * @swagger
- * /api/v1/auth/register
+ * /api/v1/auth/registration
  *   post:
  *     summary: Register a new user
  *     description: Allows the user to register with the API
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: "#/components/schemas/RequestBodyRegistration"
  *     responses:
  *       200:
  *        description: Returns the registered details ( with id ) and access tokens to allow them to use the API without having to log in again
@@ -110,6 +141,6 @@ route.post('/login', controller.login);
  *             example:
  *               message: "Internal server error: Please try again later"
  */
-route.post('/registration', controller.login);
+route.post('/registration', controller.register);
 
 export default route;

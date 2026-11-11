@@ -83,53 +83,67 @@ const service = {
             const emailCheck = await User.findOne({ where: {
                 email: email
             } });
-            
-            if(emailCheck && Object.keys(emailCheck?.dataValues).length > 0) return { error: "Validation failure. Email address is already in use.", user: undefined, tokens: { access: undefined, refresh: undefined } };
+
+            if(emailCheck?.dataValues){
+                if(Object.keys(emailCheck?.dataValues).length > 0){
+                    return { error: "Validation failure. Email address is already in use.", user: undefined, tokens: { access: undefined, refresh: undefined } };
+                }
+            }
 
             /**
              * Create the new user
              */
+            const hashedPassword = await argon2.hash(password);
+            
             const result = await User.create({
                 username: username,
                 email: email,
-                password: await argon2.hash(password),
+                password: hashedPassword,
                 displayName: displayName,
                 status: 'active',
                 roles: "user"
             });
 
+            const users = await User.findAll({ where: { email: email }, raw: true});
+
             /** Extract out the user data from the result */
-            let user = result.dataValues;
+            let user = result?.dataValues;
 
-            /**
-             *  Generate some tokens
-             */
-            let accessToken = await encodeToken({
-                    id: parseInt(user.userId),
-                    username: user.username,
-                    roles: user.roles
-                }, 
-                config.auth.jwt.secret, 
-                config.auth.jwt.expires
-            );
+            if(user){
 
-            let refreshToken = await encodeToken({
-                    id: parseInt(user.userId),
-                    username: user.username,
-                    roles: user.roles
-                }, 
-                config.auth.refresh.secret, 
-                config.auth.refresh.expires
-            );
+                /**
+                 *  Generate some tokens
+                 */
+                let accessToken = await encodeToken({
+                        id: parseInt(user.userId),
+                        username: user.username,
+                        roles: user.roles
+                    }, 
+                    config.auth.jwt.secret, 
+                    config.auth.jwt.expires
+                );
+                
 
-            return {
-                error: undefined,
-                user: user,
-                tokens: {
-                    access: accessToken.token,
-                    refresh: refreshToken.token
+                let refreshToken = await encodeToken({
+                        id: parseInt(user.userId),
+                        username: user.username,
+                        roles: user.roles
+                    }, 
+                    config.auth.refresh.secret, 
+                    config.auth.refresh.expires
+                );
+
+                return {
+                    error: undefined,
+                    user: user,
+                    tokens: {
+                        access: accessToken.token,
+                        refresh: refreshToken.token
+                    }
                 }
+
             }
+
 
         } catch(err) {
             logger.log('error', err.message);
