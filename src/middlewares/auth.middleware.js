@@ -57,3 +57,29 @@ export const validateToken = async (req, res, next) => {
     }
 
 };
+
+/**
+ * validateRoles
+ * 
+ * Ensures that only users with the correct roles can access this resource
+ */
+export const validateRoles = (role) => {
+    return (req, res, next) => {
+
+        try{
+
+            if(!req.user) return res.status(403).json({ message: 'Access denied'})
+
+            if(req.user.roles === role){
+                next()
+            } else {
+                logger.log("error", `Access denied`)
+                return res.status(403).json({ message: "Access denied"})
+            }
+
+        } catch(error) {
+            logger.log('error', error.message)
+        }
+
+    }
+}

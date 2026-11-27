@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 import config from '../config/config.js';
 import { encodeToken } from "../utils/auth.utils.js";
 import db, { User } from '@/db/database.js';
-import { validateToken } from "../middlewares/auth.middleware.js";
+import { validateToken, validateRoles } from "../middlewares/auth.middleware.js";
 
 describe('Auth Middleware', () => {
 
@@ -210,6 +210,61 @@ describe('Auth Middleware', () => {
             expect(res.status).toHaveBeenCalledWith(500);
             expect(res.json).toHaveBeenCalledWith({ message: 'Internal Server Failure. Please try again later.'});
             
+
+        });
+
+    });
+
+    describe('validateRoles', () => {
+
+        it('should call next if the user has a valid role', async () => {
+
+            /** Mock the objects passed to the middleware */
+            const req = { user: { roles: "editor" } }
+            const res = { status: vi.fn().mockReturnThis(), json: vi.fn() }
+            const next = vi.fn();
+
+            /** Execute the middleware */
+            await validateRoles("editor")(req, res, next);
+
+            /** Check it was called as we expected it to be */
+            expect(next).toHaveBeenCalled();
+            expect(res.json).not.toHaveBeenCalled();
+            expect(res.status).not.toHaveBeenCalled();
+
+        });
+
+        it('should return status 403 and not call next if user has an incorrect role', async () => {
+
+            /** Mock the objects passed to the middleware */
+            const req = { user: { roles: "editor" } }
+            const res = { status: vi.fn().mockReturnThis(), json: vi.fn() }
+            const next = vi.fn();
+
+            /** Execute the middleware */
+            await validateRoles("admin")(req, res, next);
+
+            /** Check it was called as we expected it to be */
+            expect(next).not.toHaveBeenCalled();
+            expect(res.json).toHaveBeenCalledWith({ message: 'Access denied'});
+            expect(res.status).toHaveBeenCalled(403);
+
+        });
+
+        it('should return status 403 and not call next if the user object is missing', async () => {
+
+            /** Mock the objects passed to the middleware */
+            const req = {  }
+            const res = { status: vi.fn().mockReturnThis(), json: vi.fn() }
+            const next = vi.fn();
+
+            /** Execute the middleware */
+            await validateRoles("admin")(req, res, next);
+
+            /** Check it was called as we expected it to be */
+            expect(next).not.toHaveBeenCalled();
+            expect(res.json).toHaveBeenCalledWith({ message: 'Access denied'});
+            expect(res.status).toHaveBeenCalled(403);
 
         });
 
